@@ -1,6 +1,7 @@
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
+var _ = require('underscore');
 var PORT = process.env.PORT || 3000;
 var todos = [];
 var todoNextId = 1;
@@ -15,31 +16,32 @@ app.get('/todos', function(req, res){
 });
 //get todo by id
 app.get('/todo/:id', function(req, res){
-	var id = parseInt(req.params.id, 10);
-	var matchedTodo;
-	todos.forEach(function(todo){
-		if(id === todo.id){
-			matchedTodo = todo;
-		}
-	});
+	var todoId = parseInt(req.params.id, 10);
+	var matchedTodo = _.findWhere(todos,{id: todoId} );
 	if(matchedTodo){
 		res.json(matchedTodo);
 	}else{
-		res.json({
-			status: 404,
-			msg: "No todo found with Id: " + id
-		});
+		var response = {
+						status: 404,
+						msg: "No todo found with Id: " + id
+					};
+		res.json(response);
 	}
 });
 
 //post a todo
 
 app.post('/todos', function(req, res){
-	console.log(req.body);
+	var pickedFields = _.pick(req.body, 'description', 'completed');
+	var description =  pickedFields.description.trim();
+	var completed = pickedFields.completed;
+	if(!_.isBoolean(completed) || !_.isString(description) || description.trim() < 1 ){
+		return res.status(400).send();
+	}
 	 var todo = {
 		 id: todoNextId,
-		 description: req.body.description,
-		 completed: req.body.completed
+		 description: description,
+		 completed: completed
 	 }
 	todos.push(todo);
 	todoNextId++;
