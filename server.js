@@ -170,6 +170,27 @@ app.put('/todo/:id', function(req, res){
 		res.status(500).send();
 	});
 });
+
+//add user
+app.post('/users', function(req, res){
+	var body = _.pick(req.body, 'email', 'password');
+	db.user.create(body).then(function(user){
+		if(user){
+			var response = {
+				success: true,
+				msg: "User created Successfully."
+			}
+			res.json(response);
+		}
+	},function(e){
+		var response = {
+				status: 400,
+				success: false,
+				msg: e
+			}
+		res.status(400).json(response);
+	});
+});
 db.sequelize.sync().then(function(){
 	app.listen(PORT, function(){
 		console.log('App is listening on port: ' + PORT);
