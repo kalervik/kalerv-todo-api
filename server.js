@@ -2,6 +2,7 @@ var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
 var _ = require('underscore');
+var db = require('./db.js');
 var PORT = process.env.PORT || 3000;
 var todos = [];
 var todoNextId = 1;
@@ -45,25 +46,49 @@ app.get('/todo/:id', function(req, res){
 //post a todo
 
 app.post('/todos', function(req, res){
-	var pickedFields = _.pick(req.body, 'description', 'completed');
-	var description =  pickedFields.description.trim();
-	var completed = pickedFields.completed;
-	if(!_.isBoolean(completed) || !_.isString(description) || description.trim() < 1 ){
-		return res.status(400).send();
-	}
-	 var todo = {
-		 id: todoNextId,
-		 description: description,
-		 completed: completed
-	 }
-	todos.push(todo);
-	todoNextId++;
-	var response = {
-		status: 200,
-		data: todo,
-		success: true
-	}
-	res.json(response);
+	var body = _.pick(req.body, 'description', 'completed');
+	db.todo.create(body).then(function(todo){
+		if(todo){
+			var response = {
+				success: true,
+				data: todo.toJSON(),
+				msg: "Todo created Successfully."
+			}
+			res.json(response);
+		}else{
+			var response = {
+				status: 400,
+				success: false,
+				msg: "Something went wrong. Todo can not be created."
+			}
+		res.json(response);
+		}
+	},function(e){
+		var response = {
+				status: 400,
+				success: false,
+				msg: e.message
+			}
+		res.json(response);
+	});
+//	var description =  pickedFields.description.trim();
+//	var completed = pickedFields.completed;
+//	if(!_.isBoolean(completed) || !_.isString(description) || description.trim() < 1 ){
+//		return res.status(400).send();
+//	}
+//	 var todo = {
+//		 id: todoNextId,
+//		 description: description,
+//		 completed: completed
+//	 }
+//	todos.push(todo);
+//	todoNextId++;
+//	var response = {
+//		status: 200,
+//		data: todo,
+//		success: true
+//	}
+//	res.json(response);
 	
 });
 
@@ -103,7 +128,9 @@ app.put('/todo/:id', function(req, res){
 	}
 	_.extend(matchedTodo, validAttribute);
 	res.json(matchedTodo);
-})
-app.listen(PORT, function(){
-	console.log('App is listening on port: ' + PORT);
-})
+});
+db.sequelize.sync().then(function(){
+	app.listen(PORT, function(){
+		console.log('App is listening on port: ' + PORT);
+	})
+});
