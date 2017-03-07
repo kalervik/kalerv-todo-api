@@ -31,16 +31,30 @@ app.get('/todos', function(req, res){
 //get todo by id
 app.get('/todo/:id', function(req, res){
 	var todoId = parseInt(req.params.id, 10);
-	var matchedTodo = _.findWhere(todos,{id: todoId} );
-	if(matchedTodo){
-		res.json(matchedTodo);
-	}else{
-		var response = {
-						status: 404,
-						msg: "No todo found with Id: " + id
-					};
+	db.todo.findById(todoId).then(function(todo){
+		if(!!todo){
+			var response = {
+				success: true,
+				data: todo.toJSON(),
+				msg: "Todo found."
+			}
+			res.json(response);
+		}else{
+			var response = {
+				status: 400,
+				success: false,
+				msg: "Todo not found with Todo Id: " + todoId
+			}
 		res.json(response);
-	}
+		}
+	},function(e){
+		var response = {
+				status: 500,
+				success: false,
+				msg: "TSomething went wrong"
+			}
+		res.json(response);
+	});
 });
 
 //post a todo
@@ -70,26 +84,7 @@ app.post('/todos', function(req, res){
 				msg: e.message
 			}
 		res.json(response);
-	});
-//	var description =  pickedFields.description.trim();
-//	var completed = pickedFields.completed;
-//	if(!_.isBoolean(completed) || !_.isString(description) || description.trim() < 1 ){
-//		return res.status(400).send();
-//	}
-//	 var todo = {
-//		 id: todoNextId,
-//		 description: description,
-//		 completed: completed
-//	 }
-//	todos.push(todo);
-//	todoNextId++;
-//	var response = {
-//		status: 200,
-//		data: todo,
-//		success: true
-//	}
-//	res.json(response);
-	
+	});	
 });
 
 //delete a todod
