@@ -3,7 +3,7 @@ var _ = require('underscore');
 var crypto = require('crypto-js');
 var jwt = require('jsonwebtoken');
 module.exports = function(sequelize, DataTypes){
-	var user = sequelize.define('user',{
+	var User = sequelize.define('user',{
 		email:{
 			type: DataTypes.STRING,
 			allowNull: false,
@@ -48,7 +48,7 @@ module.exports = function(sequelize, DataTypes){
                 if(typeof body.email !== 'string' || typeof body.password !== 'string'){
                     return reject();
                 }
-                user.findOne({
+                User.findOne({
                     where: {email: body.email}
                 }).then(function(user){
                     if(!user || !bcrypt.compareSync(body.password, user.get('passwordHash'))){
@@ -66,7 +66,7 @@ module.exports = function(sequelize, DataTypes){
                        var decodedJWT = jwt.verify(token, 'qwerty098');
                        var bytes = crypto.AES.decrypt(decodedJWT.token, 'abc123!@#');
                        var tokenData = JSON.parse(bytes.toString(crypto.enc.Utf8));
-                       user.findById(tokenData.id).then(function(user){
+                       User.findById(tokenData.id).then(function(user){
                         if(user){ 
                            resolve(tokenData);
                         } else{
@@ -104,5 +104,5 @@ module.exports = function(sequelize, DataTypes){
             }
 		}
 	});
-    return user;
+    return User;
 } 

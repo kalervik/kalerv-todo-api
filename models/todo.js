@@ -1,4 +1,4 @@
-module.exports = function(sequelize, DataTypes){
+var Todo = function(sequelize, DataTypes){
 	return sequelize.define('todo',{
 		description: {
 			type: DataTypes.STRING,
@@ -14,3 +14,4 @@ module.exports = function(sequelize, DataTypes){
 		}
 	});
 } 
+module.exports =  Todo;

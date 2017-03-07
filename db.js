@@ -15,10 +15,11 @@ if(env === 'production'){
 var db = {
 	
 };
-db.todo = sequelize.import(__dirname + '/models/todo.js');
-db.user = sequelize.import(__dirname + '/models/users.js');
+db.Todo = sequelize.import(__dirname + '/models/todo.js');
+db.User = sequelize.import(__dirname + '/models/users.js');
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
-
+db.Todo.belongsTo(db.User);
+db.User.hasMany(db.Todo);
 module.exports = db;

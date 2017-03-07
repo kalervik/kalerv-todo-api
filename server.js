@@ -27,7 +27,7 @@ app.get('/todos',authMiddleware.requireAuthentication, function(req, res){
 			$like: '%' + query.q + '%'
 		}
 	}
-	db.todo.findAll({
+	db.Todo.findAll({
 		where: where
 	}).then(function(todos){
 		var response = {
@@ -49,7 +49,7 @@ app.get('/todos',authMiddleware.requireAuthentication, function(req, res){
 //get todo by id
 app.get('/todo/:id', authMiddleware.requireAuthentication, function(req, res){
 	var todoId = parseInt(req.params.id, 10);
-	db.todo.findById(todoId).then(function(todo){
+	db.Todo.findById(todoId).then(function(todo){
 		if(!!todo){
 			var response = {
 				success: true,
@@ -79,14 +79,28 @@ app.get('/todo/:id', authMiddleware.requireAuthentication, function(req, res){
 
 app.post('/todos', authMiddleware.requireAuthentication, function(req, res){
 	var body = _.pick(req.body, 'description', 'completed');
-	db.todo.create(body).then(function(todo){
+//    db.Todo.create(body).then(function(todo){
+//        req.user.addTodo(todo).then(function(todo){
+//            return todo.reload();
+//        }).then(function(todo){
+//            res.json(todo.toJSON());
+//        });
+//    },function(e){
+//       res.status(400).json(e); 
+//    });
+    
+	db.Todo.create(body).then(function(todo){
 		if(todo){
-			var response = {
-				success: true,
-				data: todo.toJSON(),
-				msg: "Todo created Successfully."
-			}
-			res.json(response);
+			req.user.addTodo(todo).then(function(){
+                return todo.reload();
+            }).then(function (todo){
+                var response = {
+                    success: true,
+                    data: todo.toJSON(),
+                    msg: "Todo created Successfully."
+                }
+                res.json(response);
+            });
 		}else{
 			var response = {
 				status: 400,
@@ -109,7 +123,7 @@ app.post('/todos', authMiddleware.requireAuthentication, function(req, res){
 app.delete('/todo/:id', authMiddleware.requireAuthentication, function(req, res){
 	
 	var todoId = parseInt(req.params.id, 10);
-	db.todo.destroy({
+	db.Todo.destroy({
 		where: {
 			id: todoId
 		}
@@ -152,7 +166,7 @@ app.put('/todo/:id', authMiddleware.requireAuthentication, function(req, res){
 	if(body.hasOwnProperty('description')){
 		attributes.description = body.description;
 	}
-	db.todo.findById(todoId).then(function(todo){
+	db.Todo.findById(todoId).then(function(todo){
 		if(todo){
 			todo.update(attributes).then(function(todo){
 				var response = {
@@ -176,7 +190,7 @@ app.put('/todo/:id', authMiddleware.requireAuthentication, function(req, res){
 //add user
 app.post('/users', function(req, res){
 	var body = _.pick(req.body, 'email', 'password');
-	db.user.create(body).then(function(user){
+	db.User.create(body).then(function(user){
 		if(user){
 			var response = {
 				success: true,
@@ -198,7 +212,7 @@ app.post('/users', function(req, res){
 app.post('/users/login',function(req, res){
 	var body = _.pick(req.body, 'email', 'password');
     
-    db.user.authenticate(body).then(function(user){
+    db.User.authenticate(body).then(function(user){
         var token = user.generateToken('authetication');
         if(token){
             res.header('Auth', token).json(user.toPublicJSON());
