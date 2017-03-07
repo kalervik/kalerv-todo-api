@@ -4,6 +4,7 @@ var bodyParser = require('body-parser');
 var _ = require('underscore');
 var db = require('./db.js');
 var bcrypt = require('bcrypt');
+var authMiddleware = require('./middleware')(db);
 var PORT = process.env.PORT || 3000;
 var todos = [];
 var todoNextId = 1;
@@ -13,7 +14,7 @@ app.get('/', function(req, res){
 
 app.use(bodyParser.json());
 //Get todos
-app.get('/todos', function(req, res){
+app.get('/todos',authMiddleware.requireAuthentication, function(req, res){
 	var query = req.query;
 	var where = {};
 	if(query.hasOwnProperty('completed') && query.completed === 'true'){
@@ -46,7 +47,7 @@ app.get('/todos', function(req, res){
 	
 });
 //get todo by id
-app.get('/todo/:id', function(req, res){
+app.get('/todo/:id', authMiddleware.requireAuthentication, function(req, res){
 	var todoId = parseInt(req.params.id, 10);
 	db.todo.findById(todoId).then(function(todo){
 		if(!!todo){
@@ -76,7 +77,7 @@ app.get('/todo/:id', function(req, res){
 
 //post a todo
 
-app.post('/todos', function(req, res){
+app.post('/todos', authMiddleware.requireAuthentication, function(req, res){
 	var body = _.pick(req.body, 'description', 'completed');
 	db.todo.create(body).then(function(todo){
 		if(todo){
@@ -105,7 +106,7 @@ app.post('/todos', function(req, res){
 });
 
 //delete a todo
-app.delete('/todo/:id', function(req, res){
+app.delete('/todo/:id', authMiddleware.requireAuthentication, function(req, res){
 	
 	var todoId = parseInt(req.params.id, 10);
 	db.todo.destroy({
@@ -140,7 +141,7 @@ app.delete('/todo/:id', function(req, res){
 });
 
 //update a todo item
-app.put('/todo/:id', function(req, res){
+app.put('/todo/:id', authMiddleware.requireAuthentication, function(req, res){
 	var body = _.pick(req.body, 'description', 'completed');
 	var attributes = {};
 	var todoId = parseInt(req.params.id, 10);
