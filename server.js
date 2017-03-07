@@ -178,6 +178,7 @@ app.post('/users', function(req, res){
 		if(user){
 			var response = {
 				success: true,
+				data: user.toPublicJSON(),
 				msg: "User created Successfully."
 			}
 			res.json(response);
