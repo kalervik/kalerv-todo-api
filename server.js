@@ -13,19 +13,35 @@ app.get('/', function(req, res){
 app.use(bodyParser.json());
 //Get todos
 app.get('/todos', function(req, res){
-	var queryParams = req.query;
-	var filteredTodos = todos;
-	if(queryParams.hasOwnProperty('completed') && queryParams.completed === 'true'){
-		filteredTodos = _.where(todos, {completed: true})
-	}else if(queryParams.hasOwnProperty('completed') && queryParams.completed === 'false'){
-		filteredTodos = _.where(todos, {completed: false})
+	var query = req.query;
+	var where = {};
+	if(query.hasOwnProperty('completed') && query.completed === 'true'){
+		where.completed = true;
+	}else if(query.hasOwnProperty('completed') && query.completed === 'false'){
+		where.completed = false;
 	}
-	if(queryParams.hasOwnProperty('q') && queryParams.q.length > 0){
-		 filteredTodos = _.filter(filteredTodos, function(todo){
-			return todo.description.toLowerCase().indexOf(queryParams.q) > -1;
-		});
+	if(query.hasOwnProperty('q') && query.q.length > 0){
+		where.description = {
+			$like: '%' + query.q + '%'
+		}
 	}
-	res.json(filteredTodos);
+	db.todo.findAll({
+		where: where
+	}).then(function(todos){
+		var response = {
+				success: true,
+				data: todos,
+				msg: "Todos found."
+			}
+			res.json(response);
+	},function(e){
+		var response = {
+				status: 500,
+				success: false,
+				msg: "Something went wrong"
+			}
+		res.status(500).json(response);
+	});
 	
 });
 //get todo by id
@@ -51,9 +67,9 @@ app.get('/todo/:id', function(req, res){
 		var response = {
 				status: 500,
 				success: false,
-				msg: "TSomething went wrong"
+				msg: "Something went wrong"
 			}
-		res.json(response);
+		res.status(500).json(response);
 	});
 });
 
@@ -83,7 +99,7 @@ app.post('/todos', function(req, res){
 				success: false,
 				msg: e.message
 			}
-		res.json(response);
+		res.status(400).json(response);
 	});	
 });
 
