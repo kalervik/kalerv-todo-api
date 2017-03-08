@@ -209,20 +209,36 @@ app.post('/users', function(req, res){
 //log user
 app.post('/users/login',function(req, res){
 	var body = _.pick(req.body, 'email', 'password');
-    
+	var userInstance;    
     db.User.authenticate(body).then(function(user){
         var token = user.generateToken('authetication');
-        if(token){
-            res.header('Auth', token).json(user.toPublicJSON());
-        }else{
-            res.status(401).send();
-        }
-        
-    },function(e){
+		userInstance = user;
+		return db.Token.create({
+			token: token
+		});        
+    }).then(function(tokenInstance){
+		res.header('Auth', tokenInstance.get('token')).json(userInstance.toPublicJSON());
+	}).catch(function(e){
         res.status(401).send();
     });
 
 });
+
+//logout user
+app.delete('/users/login', authMiddleware.requireAuthentication, function(req, res){
+	req.token.destroy().then(function(){
+		res.status(204).json({
+			success: true,
+			msg: "You have logged out."
+		});
+	}).catch(function(){
+		res.status(500).json({
+			success: false,
+			msg: "Something went wrong."
+		});
+	});
+});
+
 db.sequelize.sync({force:true}).then(function(){
 	app.listen(PORT, function(){
 		console.log('App is listening on port: ' + PORT);
