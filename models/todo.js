@@ -1,5 +1,5 @@
-var Todo = function(sequelize, DataTypes){
-	return sequelize.define('todo',{
+module.exports = function(sequelize, DataTypes){
+	var Todo =  sequelize.define('todo',{
 		description: {
 			type: DataTypes.STRING,
 			allowNull: false,
@@ -13,5 +13,5 @@ var Todo = function(sequelize, DataTypes){
 			defaultValue: false
 		}
 	});
+	return Todo;
 } 
-module.exports =  Todo;

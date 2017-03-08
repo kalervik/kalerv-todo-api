@@ -91,7 +91,7 @@ app.post('/todos', authMiddleware.requireAuthentication, function(req, res){
     
 	db.Todo.create(body).then(function(todo){
 		if(todo){
-			req.user.addTodo(todo).then(function(){
+			req.user.addTodos(todo).then(function(){
                 return todo.reload();
             }).then(function (todo){
                 var response = {
